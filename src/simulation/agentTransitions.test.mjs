@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {transitionAgent} from './agentTransitions.mjs';
+const charts=[1,2,3,4].map(i=>({id:`c${i}`,system:`s${i}`,address:`a${i}`}));
+const rules=[{id:'allow-move',source:'test-fixture-not-human-design',chartId:'c1',address:'a1',actionId:'move',effect:'allow'}, {id:'storm-deny',source:'test-fixture-not-human-design',chartId:'c2',address:'a2',actionId:'move',effect:'deny',when:{weather:'storm'}}];
+const agent={id:'sim-1',revision:0,state:{energy:1},position:[0,0,0],memory:[]};
+const action={id:'move',effects:{position:[1,0,0],state:{arrived:true}}};
+const input={agent,action,charts,rules,successConditions:[{key:'arrived',equals:true}]};
+const clear=transitionAgent({...input,context:{weather:'clear'}});
+assert.equal(clear.applied,true);assert.equal(clear.success,true);assert.equal(clear.agent.revision,1);assert.deepEqual(clear.agent.position,[1,0,0]);assert.equal(clear.agent.memory.length,1);
+assert.equal(agent.revision,0);assert.equal(agent.memory.length,0);
+const storm=transitionAgent({...input,context:{weather:'storm'}});assert.equal(storm.applied,false);assert.strictEqual(storm.agent,agent);
+const unresolved=transitionAgent({...input,action:{id:'unknown'}});assert.equal(unresolved.decision.status,'unresolved');assert.equal(unresolved.applied,false);
+assert.throws(()=>transitionAgent({...input,action:{...action,effects:{position:[Infinity,0,0]}}}),/finite/);
+assert.throws(()=>transitionAgent({...input,successConditions:[{key:'arrived'}]}),/Success conditions/);
+console.log('agent transition tests passed');
