@@ -13,3 +13,4 @@ jobs:
         with:
           node-version: '22'
       - run: node src/simulation/chartConstraints.test.mjs
+      - run: node src/simulation/agentTransitions.test.mjs
