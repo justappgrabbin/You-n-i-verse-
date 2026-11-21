@@ -1,0 +1,15 @@
+name: Agent chart constraint tests
+on:
+  push:
+    branches:
+      - feature/agent-chart-constraints-20261120
+  workflow_dispatch:
+jobs:
+  chart-constraints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node src/simulation/chartConstraints.test.mjs
