@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import { evaluateChartConstraints } from "./chartConstraints.mjs";
+const charts = [1,2,3,4].map(n=>({id:"chart"+n,system:"source-defined-"+n,address:"gate:"+n}));
+const rules=[{id:"r1",source:"verified-source-page",chartId:"chart1",address:"gate:1",actionId:"explore",effect:"allow"},{id:"r2",source:"verified-source-page",chartId:"chart2",address:"gate:2",actionId:"explore",effect:"deny",when:{weather:"storm"}}];
+assert.equal(evaluateChartConstraints({charts,action:{id:"explore"},rules,context:{weather:"clear"}}).status,"allowed");
+assert.equal(evaluateChartConstraints({charts,action:{id:"explore"},rules,context:{weather:"storm"}}).status,"denied");
+assert.equal(evaluateChartConstraints({charts,action:{id:"rest"},rules}).status,"unresolved");
+assert.throws(()=>evaluateChartConstraints({charts:charts.slice(0,3),action:{id:"explore"},rules}),/four chart/);
+assert.throws(()=>evaluateChartConstraints({charts,action:{id:"explore"},rules:[]}),/source-attributed/);
+console.log("5 chart constraint tests passed");
