@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {connectLivingSwarm} from './swarmAdventureAdapter.mjs';
+const agent={id:'sim',position:{x:0,y:0}};
+let allowed=false;
+const bridge={snapshot:()=>({state:{tick:allowed?1:0,agents:[agent]},currentScene:'start'}),choose:()=>{if(!allowed)return {applied:false};agent.position={x:4,y:6};return {applied:true,snapshot:{state:{tick:1,agents:[agent]},currentScene:'garden'}}}};
+const unit={id:0,x:0,y:0,target:null};const swarm={units:[unit],step(dt){this.elapsed=(this.elapsed??0)+dt;return this}};
+const adapter=connectLivingSwarm({swarm,bridge,bindings:[{agentId:'sim',unitId:0}],scale:{x:10,y:10}});
+assert.equal(adapter.choose({agentId:'sim'}).applied,false);assert.equal(unit.target,null);
+allowed=true;assert.equal(adapter.choose({agentId:'sim'}).applied,true);assert.deepEqual(unit.target,{x:.4,y:.6});
+adapter.step(2);assert.equal(swarm.elapsed,2);assert.equal(adapter.changes.length,1);
+unit.target=null;adapter.syncRestored();assert.deepEqual(unit.target,{x:.4,y:.6});
+assert.throws(()=>connectLivingSwarm({swarm,bridge,bindings:[{agentId:'missing',unitId:0}]}),/unknown Sim/);
+assert.throws(()=>connectLivingSwarm({swarm,bridge,bindings:[{agentId:'sim',unitId:3}]}),/missing/);
+console.log('LivingSwarm adapter assertions passed');
